@@ -1,0 +1,144 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-snug);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+  white-space: nowrap;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- Sizes --- */
+.btn--sm {
+  font-size: var(--text-xs);
+  padding: 5px var(--space-3);
+  height: 28px;
+}
+
+.btn--md {
+  font-size: var(--text-sm);
+  padding: 7px var(--space-4);
+  height: 34px;
+}
+
+.btn--lg {
+  font-size: var(--text-base);
+  padding: 10px var(--space-6);
+  height: 42px;
+}
+
+/* --- Primary --- */
+.btn--primary {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+  box-shadow: var(--shadow-sm), var(--shadow-accent), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.btn--primary:active:not(:disabled) {
+  background: var(--color-accent-active);
+  border-color: var(--color-accent-active);
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* --- Secondary --- */
+.btn--secondary {
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-xs), var(--shadow-inset);
+}
+.btn--secondary:hover:not(:disabled) {
+  background: var(--color-bg-overlay);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-sm), var(--shadow-inset);
+}
+.btn--secondary:active:not(:disabled) {
+  background: var(--color-bg-elevated);
+  box-shadow: none;
+}
+
+/* --- Ghost --- */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: transparent;
+}
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-accent-muted);
+  color: var(--color-text-primary);
+  border-color: transparent;
+}
+.btn--ghost:active:not(:disabled) {
+  background: var(--color-accent-subtle);
+}
+
+/* --- Danger --- */
+.btn--danger {
+  background: var(--color-error-subtle);
+  color: var(--color-error-text);
+  border-color: rgba(248, 113, 113, 0.2);
+}
+.btn--danger:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+/* --- Disabled --- */
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --- Loading --- */
+.btn--loading {
+  cursor: wait;
+}
+
+.btn__spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+}
+
+.btn__spinner svg {
+  width: 14px;
+  height: 14px;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Icons --- */
+.btn__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.btn__icon svg { width: 14px; height: 14px; }
+.btn--lg .btn__icon svg { width: 16px; height: 16px; }
+.btn--sm .btn__icon svg { width: 12px; height: 12px; }
