@@ -1,10 +1,10 @@
 const variantStyles = {
   neutral: 'bg-bg-elevated text-text-secondary border-border-subtle',
-  accent: 'bg-accent-subtle text-accent border-accent/20',
-  success: 'bg-success-subtle text-success border-success/20',
-  warning: 'bg-warning-subtle text-warning border-warning/20',
-  error: 'bg-error-subtle text-error border-error/20',
-  info: 'bg-info-subtle text-info border-info/20',
+  accent: 'bg-accent-subtle text-accent border-accent-border',
+  success: 'bg-success-subtle text-success border-success-border',
+  warning: 'bg-warning-subtle text-warning border-warning-border',
+  error: 'bg-error-subtle text-error border-error-border',
+  info: 'bg-info-subtle text-info border-info-border',
 };
 
 const dotStyles = {
@@ -17,9 +17,9 @@ const dotStyles = {
 };
 
 const sizeStyles = {
-  xs: 'text-2xs px-1.5 py-0.5 font-medium',
-  sm: 'text-xs px-2 py-0.5 font-medium',
-  md: 'text-xs px-2.5 py-1 font-semibold tracking-wide uppercase',
+  xs: 'text-2xs px-2 py-0.5 font-medium',
+  sm: 'text-xs px-2.5 py-0.5 font-medium',
+  md: 'text-xs px-3 py-1 font-semibold tracking-wide uppercase',
 };
 
 const Badge = ({
@@ -31,7 +31,9 @@ const Badge = ({
 }) => {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border leading-none whitespace-nowrap transition-colors duration-150 ${variantStyles[variant] || variantStyles.neutral} ${sizeStyles[size] || sizeStyles.sm} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border leading-none whitespace-nowrap transition-colors duration-150 ${
+        variantStyles[variant] || variantStyles.neutral
+      } ${sizeStyles[size] || sizeStyles.sm} ${className}`}
     >
       {dot && (
         <span

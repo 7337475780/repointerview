@@ -33,26 +33,31 @@ export default {
           hover: 'var(--color-accent-hover)',
           active: 'var(--color-accent-active)',
           subtle: 'var(--color-accent-subtle)',
+          border: 'var(--color-accent-border)',
           muted: 'var(--color-accent-muted)',
         },
         success: {
           DEFAULT: 'var(--color-success)',
           subtle: 'var(--color-success-subtle)',
+          border: 'var(--color-success-border)',
           text: 'var(--color-success-text)',
         },
         warning: {
           DEFAULT: 'var(--color-warning)',
           subtle: 'var(--color-warning-subtle)',
+          border: 'var(--color-warning-border)',
           text: 'var(--color-warning-text)',
         },
         error: {
           DEFAULT: 'var(--color-error)',
           subtle: 'var(--color-error-subtle)',
+          border: 'var(--color-error-border)',
           text: 'var(--color-error-text)',
         },
         info: {
           DEFAULT: 'var(--color-info)',
           subtle: 'var(--color-info-subtle)',
+          border: 'var(--color-info-border)',
           text: 'var(--color-info-text)',
         },
         code: {

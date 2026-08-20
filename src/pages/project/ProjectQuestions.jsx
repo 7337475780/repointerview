@@ -1,52 +1,70 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight } from 'lucide-react';
-import Badge from '../components/ui/Badge';
-import { QUESTIONS } from '../data/fixtures';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Search, ChevronRight, Filter } from 'lucide-react';
+import ProjectNav from '../../components/layout/ProjectNav';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
+import { useProject } from '../../context/ProjectContext';
+import { QUESTIONS } from '../../data/fixtures';
 
-const CATEGORIES = ['All', ...new Set(QUESTIONS.map(q => q.category))];
-const DIFFICULTIES = ['all', 'easy', 'medium', 'hard'];
+const CATEGORIES = ['All', 'Architecture', 'Database', 'Security', 'API Design', 'Performance', 'Infrastructure'];
+const STATUS_FILTERS = ['all', 'high_probability', 'hard', 'unprepared'];
 
-const Questions = () => {
+const ProjectQuestions = () => {
+  const { id } = useParams();
+  const { projects } = useProject();
   const navigate = useNavigate();
+
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [difficulty, setDifficulty] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const project = projects.find(p => p.id === id) || projects[0];
 
   const filtered = QUESTIONS.filter(q => {
     const matchSearch =
       q.question.toLowerCase().includes(search.toLowerCase()) ||
       q.category.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === 'All' || q.category === category;
-    const matchDiff = difficulty === 'all' || q.difficulty === difficulty;
-    return matchSearch && matchCat && matchDiff;
+    const matchCat = category === 'All' || q.category.toLowerCase() === category.toLowerCase();
+    const matchStatus =
+      statusFilter === 'all'
+        ? true
+        : statusFilter === 'high_probability'
+        ? q.probability >= 85
+        : statusFilter === 'hard'
+        ? q.difficulty === 'hard'
+        : true;
+    return matchSearch && matchCat && matchStatus;
   });
 
   return (
-    <div className="min-h-screen pb-16">
-      <div className="max-w-7xl mx-auto px-6">
+    <div className="flex flex-col min-h-full">
+      <ProjectNav projectId={project.id} />
+
+      <div className="p-8 max-w-7xl mx-auto flex flex-col gap-6 w-full">
         {/* Header */}
-        <div className="py-8 border-b border-border-subtle">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">Questions Bank</p>
-          <h1 className="text-3xl font-bold tracking-tight text-text-primary mt-1">Interview questions</h1>
-          <p className="text-sm text-text-tertiary mt-2">
-            {QUESTIONS.length} predicted questions generated from{' '}
-            <code className="text-xs text-accent font-mono bg-bg-elevated px-1.5 py-0.5 rounded border border-border-subtle">
-              alexchen/notionify
-            </code>
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-subtle pb-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">Question Radar</p>
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary mt-1">Predicted interview questions</h1>
+            <p className="text-sm text-text-secondary mt-1">
+              Questions calibrated to the technical decisions in <code className="text-accent font-mono text-xs">{project.repository.fullName}</code>
+            </p>
+          </div>
+          <span className="text-xs font-mono text-text-tertiary bg-bg-elevated px-3 py-1.5 rounded-lg border border-border-subtle self-start">
+            {QUESTIONS.length} Questions Ingested
+          </span>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col gap-4 py-6">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3 bg-bg-elevated border border-border focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/20 rounded-xl px-4 py-2 max-w-lg transition-all shadow-xs">
             <Search size={15} className="text-text-tertiary flex-shrink-0" aria-hidden="true" />
             <input
-              id="qs-search-input"
               type="search"
               className="flex-1 bg-transparent border-none outline-none text-sm text-text-primary placeholder:text-text-disabled"
-              placeholder="Search questions by topic, keyword, or architecture component..."
+              placeholder="Search by topic, architecture tier, or keyword..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               aria-label="Search questions"
@@ -70,55 +88,50 @@ const Questions = () => {
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by difficulty">
-            {DIFFICULTIES.map(d => (
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by priority">
+            {[
+              { id: 'all', label: 'All probabilities' },
+              { id: 'high_probability', label: 'High probability (≥85%)' },
+              { id: 'hard', label: 'Hard difficulty' },
+            ].map(f => (
               <button
-                key={d}
+                key={f.id}
                 className={`text-xs font-medium rounded-full px-3.5 py-1.5 transition-all cursor-pointer border ${
-                  difficulty === d
+                  statusFilter === f.id
                     ? 'bg-accent-subtle border-accent-border text-accent font-semibold shadow-xs'
                     : 'bg-bg-elevated border-border-subtle text-text-tertiary hover:text-text-primary hover:border-border hover:bg-bg-overlay'
                 }`}
-                onClick={() => setDifficulty(d)}
-                aria-pressed={difficulty === d}
+                onClick={() => setStatusFilter(f.id)}
+                aria-pressed={statusFilter === f.id}
               >
-                {d === 'all' ? 'All levels' : d.charAt(0).toUpperCase() + d.slice(1)}
+                {f.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Results count */}
-        <p className="font-mono text-xs text-text-disabled mb-4">
-          Showing {filtered.length} question{filtered.length !== 1 ? 's' : ''}
-        </p>
-
-        {/* Question list */}
+        {/* Question Rows */}
         {filtered.length === 0 ? (
-          <div className="py-16 flex flex-col items-start gap-3">
-            <p className="text-base text-text-tertiary">No questions match your current filters.</p>
-            <button
-              className="text-sm text-accent hover:underline font-medium cursor-pointer"
-              onClick={() => {
-                setSearch('');
-                setCategory('All');
-                setDifficulty('all');
-              }}
-            >
-              Reset all filters
-            </button>
-          </div>
+          <EmptyState
+            title="No matching questions"
+            description="No predicted questions match your active filter criteria."
+            actionLabel="Reset filters"
+            onAction={() => {
+              setSearch('');
+              setCategory('All');
+              setStatusFilter('all');
+            }}
+          />
         ) : (
-          <div className="flex flex-col divide-y divide-border-subtle border-t border-border-subtle">
+          <div className="flex flex-col divide-y divide-border-subtle border-t border-border-subtle mt-2">
             {filtered.map((q, i) => (
               <motion.button
                 key={q.id}
                 className="w-full flex items-center justify-between gap-6 py-5 px-3 -mx-3 rounded-xl text-left cursor-pointer transition-all duration-150 hover:bg-bg-elevated/70 group"
-                onClick={() => navigate(`/questions/${q.id}`)}
+                onClick={() => navigate(`/projects/${project.id}/questions/${q.id}`)}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.3) }}
-                aria-label={`${q.question} — ${q.difficulty}, ${q.probability}% probability`}
               >
                 <div className="flex flex-col gap-2 flex-1">
                   <div className="flex items-center gap-2">
@@ -158,4 +171,4 @@ const Questions = () => {
   );
 };
 
-export default Questions;
+export default ProjectQuestions;
