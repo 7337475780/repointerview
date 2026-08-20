@@ -5,7 +5,6 @@ import { GitBranch, Star, Clock, Play, ChevronRight, TrendingUp, TrendingDown, B
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { REPO, QUESTIONS, RECENT_INTERVIEWS, WEAK_AREAS } from '../data/fixtures';
-import './Dashboard.css';
 
 // Animated score counter
 const AnimatedScore = ({ target, suffix = '' }) => {
@@ -21,7 +20,11 @@ const AnimatedScore = ({ target, suffix = '' }) => {
     const increment = target / (duration / step);
     const timer = setInterval(() => {
       start += increment;
-      if (start >= target) { setVal(target); clearInterval(timer); return; }
+      if (start >= target) {
+        setVal(target);
+        clearInterval(timer);
+        return;
+      }
       setVal(Math.floor(start));
     }, step);
     return () => clearInterval(timer);
@@ -47,11 +50,13 @@ const ReadinessRing = ({ score }) => {
   const scoreColor = score >= 75 ? 'var(--color-success)' : score >= 55 ? 'var(--color-warning)' : 'var(--color-error)';
 
   return (
-    <div className="readiness-ring" ref={ref}>
-      <svg viewBox="0 0 120 120" className="readiness-ring__svg" aria-hidden="true">
+    <div className="relative w-32 h-32 flex items-center justify-center" ref={ref}>
+      <svg viewBox="0 0 120 120" className="w-32 h-32 transform -rotate-90" aria-hidden="true">
         <circle cx="60" cy="60" r={radius} fill="none" stroke="var(--color-border)" strokeWidth="6" />
         <motion.circle
-          cx="60" cy="60" r={radius}
+          cx="60"
+          cy="60"
+          r={radius}
           fill="none"
           stroke={scoreColor}
           strokeWidth="6"
@@ -60,14 +65,13 @@ const ReadinessRing = ({ score }) => {
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: circumference * (1 - progress) }}
           transition={{ duration: 1.2, ease: [0.0, 0, 0.2, 1], delay: 0.2 }}
-          style={{ transformOrigin: 'center', transform: 'rotate(-90deg)' }}
         />
       </svg>
-      <div className="readiness-ring__label">
-        <span className="readiness-ring__score" style={{ color: scoreColor }}>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-bold font-sans leading-none" style={{ color: scoreColor }}>
           <AnimatedScore target={score} />
         </span>
-        <span className="readiness-ring__sub">/ 100</span>
+        <span className="text-xs text-text-tertiary mt-1">/ 100</span>
       </div>
     </div>
   );
@@ -78,7 +82,7 @@ const DashboardQuestionCard = ({ q, index }) => {
   const navigate = useNavigate();
   return (
     <motion.button
-      className="dq-card"
+      className="w-full bg-bg-surface border border-border hover:border-border-strong rounded-xl p-5 text-left cursor-pointer flex flex-col gap-3 transition-all duration-150 relative group shadow-sm hover:shadow-md"
       onClick={() => navigate(`/questions/${q.id}`)}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
@@ -86,19 +90,30 @@ const DashboardQuestionCard = ({ q, index }) => {
       whileHover={{ y: -2 }}
       aria-label={`View question: ${q.question}`}
     >
-      <div className="dq-card__header">
-        <Badge variant={q.difficulty === 'hard' ? 'error' : q.difficulty === 'medium' ? 'warning' : 'success'} size="xs">{q.difficulty}</Badge>
-        <Badge variant="neutral" size="xs">{q.category}</Badge>
-        <span className="dq-card__prob">
+      <div className="flex items-center gap-2">
+        <Badge variant={q.difficulty === 'hard' ? 'error' : q.difficulty === 'medium' ? 'warning' : 'success'} size="xs">
+          {q.difficulty}
+        </Badge>
+        <Badge variant="neutral" size="xs">
+          {q.category}
+        </Badge>
+        <span className="ml-auto text-xs text-text-tertiary flex items-center gap-1.5 font-mono">
           <span
-            className="dq-card__prob-dot"
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
             style={{ background: q.probability >= 85 ? 'var(--color-success)' : 'var(--color-warning)' }}
           />
           {q.probability}%
         </span>
       </div>
-      <p className="dq-card__q">{q.question}</p>
-      <ChevronRight size={13} className="dq-card__arrow" aria-hidden="true" />
+      <p className="text-sm font-medium text-text-primary leading-snug line-clamp-2">{q.question}</p>
+      <div className="flex items-center justify-between mt-auto pt-2 text-xs text-text-tertiary">
+        <span className="font-mono text-2xs truncate max-w-[200px]">↳ {q.evidence.filename}</span>
+        <ChevronRight
+          size={14}
+          className="text-text-disabled group-hover:text-accent group-hover:translate-x-0.5 transition-all"
+          aria-hidden="true"
+        />
+      </div>
     </motion.button>
   );
 };
@@ -107,47 +122,64 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="dashboard page">
+    <div className="min-h-screen pb-16">
       {/* === PROJECT HEADER === */}
-      <section className="proj-header">
-        <div className="container proj-header__inner">
-          <div className="proj-header__left">
-            <div className="proj-header__title-row">
-              <div className="proj-header__repo-icon" aria-hidden="true">
-                <GitBranch size={16} />
+      <section className="border-b border-border-subtle py-8 bg-gradient-to-b from-bg-elevated/40 to-bg-base">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="flex flex-col gap-4 flex-1">
+            <div className="flex items-start gap-3.5">
+              <div
+                className="w-9 h-9 rounded-lg bg-bg-elevated border border-border flex items-center justify-center text-accent flex-shrink-0 mt-0.5"
+                aria-hidden="true"
+              >
+                <GitBranch size={18} />
               </div>
               <div>
-                <div className="proj-header__name-row">
-                  <h1 className="proj-header__name">{REPO.fullName}</h1>
-                  <a href={REPO.url} target="_blank" rel="noopener noreferrer" className="proj-header__link" aria-label="Open repository on GitHub">
-                    <ExternalLink size={13} />
+                <div className="flex items-center gap-2">
+                  <h1 className="font-mono text-2xl font-semibold tracking-normal text-text-primary">
+                    {REPO.fullName}
+                  </h1>
+                  <a
+                    href={REPO.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-text-tertiary hover:text-accent transition-colors"
+                    aria-label="Open repository on GitHub"
+                  >
+                    <ExternalLink size={14} />
                   </a>
                 </div>
-                <p className="proj-header__desc">{REPO.description}</p>
+                <p className="text-sm text-text-tertiary mt-1">{REPO.description}</p>
               </div>
             </div>
-            <div className="proj-header__meta">
-              <span className="proj-meta-item">
-                <Star size={12} />
+
+            <div className="flex items-center gap-3 text-xs text-text-tertiary">
+              <span className="flex items-center gap-1">
+                <Star size={13} />
                 {REPO.stars.toLocaleString()}
               </span>
-              <span className="proj-meta-sep" aria-hidden="true" />
-              <span className="proj-meta-item">
-                <Clock size={12} />
+              <span className="w-1 h-1 rounded-full bg-border" aria-hidden="true" />
+              <span className="flex items-center gap-1">
+                <Clock size={13} />
                 Analyzed {REPO.lastAnalyzed}
               </span>
             </div>
-            <div className="proj-header__stack">
+
+            <div className="flex flex-wrap gap-2">
               {REPO.techStack.map(tech => (
-                <span key={tech.name} className="proj-tech" style={{ '--dot-color': tech.color }}>
-                  <span className="proj-tech__dot" aria-hidden="true" />
+                <span
+                  key={tech.name}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary bg-bg-elevated border border-border-subtle rounded-md px-2.5 py-0.5"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: tech.color }} aria-hidden="true" />
                   {tech.name}
                 </span>
               ))}
             </div>
           </div>
-          <div className="proj-header__actions">
-            <Button variant="primary" size="md" leftIcon={<Play size={13} />} onClick={() => navigate('/interview')}>
+
+          <div className="flex items-center gap-3 flex-shrink-0 pt-1">
+            <Button variant="primary" size="md" leftIcon={<Play size={14} />} onClick={() => navigate('/interview')}>
               Start interview
             </Button>
             <Button variant="secondary" size="md" onClick={() => navigate('/architecture')}>
@@ -158,9 +190,9 @@ const Dashboard = () => {
       </section>
 
       {/* === STATS ROW === */}
-      <section className="stats-row" aria-label="Repository statistics">
-        <div className="container">
-          <div className="stats-grid">
+      <section className="py-6 border-b border-border-subtle bg-bg-surface/30" aria-label="Repository statistics">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-px bg-border-subtle border border-border-subtle rounded-xl overflow-hidden shadow-xs">
             {[
               { label: 'Total files', value: REPO.stats.totalFiles.toLocaleString() },
               { label: 'Lines of code', value: `${(REPO.stats.linesOfCode / 1000).toFixed(1)}k` },
@@ -171,13 +203,15 @@ const Dashboard = () => {
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
-                className="stat-item"
+                className="flex flex-col gap-1 p-4 bg-bg-base hover:bg-bg-elevated/80 transition-colors"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
               >
-                <span className="stat-item__value">{stat.value}</span>
-                <span className="stat-item__label">{stat.label}</span>
+                <span className="text-2xl font-semibold text-text-primary tracking-tight font-sans">
+                  {stat.value}
+                </span>
+                <span className="text-xs text-text-tertiary">{stat.label}</span>
               </motion.div>
             ))}
           </div>
@@ -185,51 +219,77 @@ const Dashboard = () => {
       </section>
 
       {/* === MAIN GRID === */}
-      <div className="container dash-grid">
-
+      <div className="max-w-7xl mx-auto px-6 pt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 items-start">
         {/* -- Interview readiness -- */}
-        <section className="dash-card readiness-card" aria-labelledby="readiness-heading">
-          <div className="dash-card__header">
-            <h2 className="dash-card__title" id="readiness-heading">Interview readiness</h2>
+        <section
+          className="lg:col-span-4 bg-bg-surface border border-border rounded-2xl overflow-hidden shadow-sm flex flex-col p-6 items-center text-center gap-6"
+          aria-labelledby="readiness-heading"
+        >
+          <div className="w-full flex items-center justify-between border-b border-border-subtle pb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary" id="readiness-heading">
+              Interview readiness
+            </h2>
+            <Badge variant={REPO.analysisScore >= 75 ? 'success' : 'warning'} size="xs">
+              {REPO.analysisScore >= 75 ? 'Ready' : 'In Progress'}
+            </Badge>
           </div>
-          <div className="readiness-body">
-            <ReadinessRing score={REPO.analysisScore} />
-            <div className="readiness-details">
-              <p className="readiness-details__status">
-                {REPO.analysisScore >= 75 ? 'Ready to interview' : 'Keep practicing'}
-              </p>
-              <p className="readiness-details__hint">Based on {QUESTIONS.length} questions analyzed from your codebase.</p>
-              <Button variant="primary" size="sm" onClick={() => navigate('/interview')}>
-                Practice now
-              </Button>
-            </div>
+
+          <ReadinessRing score={REPO.analysisScore} />
+
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-base font-semibold text-text-primary">
+              {REPO.analysisScore >= 75 ? 'Ready for technical rounds' : 'Focus on weak areas'}
+            </p>
+            <p className="text-xs text-text-tertiary max-w-[240px]">
+              Based on {QUESTIONS.length} predicted questions analyzing your codebase.
+            </p>
           </div>
+
+          <Button variant="primary" size="md" className="w-full" onClick={() => navigate('/interview')}>
+            Start practice session
+          </Button>
         </section>
 
         {/* -- Weak areas -- */}
-        <section className="dash-card weak-card" aria-labelledby="weak-heading">
-          <div className="dash-card__header">
-            <h2 className="dash-card__title" id="weak-heading">Areas to strengthen</h2>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/questions')}>View all</Button>
+        <section
+          className="lg:col-span-4 bg-bg-surface border border-border rounded-2xl overflow-hidden shadow-sm flex flex-col p-6 gap-5"
+          aria-labelledby="weak-heading"
+        >
+          <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary" id="weak-heading">
+              Areas to strengthen
+            </h2>
+            <button
+              onClick={() => navigate('/questions')}
+              className="text-xs text-accent hover:text-accent-hover transition-colors font-medium cursor-pointer"
+            >
+              View all
+            </button>
           </div>
-          <div className="weak-list">
+
+          <div className="flex flex-col gap-4">
             {WEAK_AREAS.map((area, i) => (
               <motion.div
                 key={area.topic}
-                className="weak-item"
+                className="flex flex-col gap-2"
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.06 }}
               >
-                <div className="weak-item__header">
-                  <span className="weak-item__topic">{area.topic}</span>
-                  <span className="weak-item__score" style={{ color: area.score < 60 ? 'var(--color-error-text)' : 'var(--color-warning-text)' }}>
-                    {area.score}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-text-secondary font-medium truncate max-w-[200px]">{area.topic}</span>
+                  <span
+                    className="font-mono font-semibold"
+                    style={{
+                      color: area.score < 60 ? 'var(--color-error-text)' : 'var(--color-warning-text)',
+                    }}
+                  >
+                    {area.score}%
                   </span>
                 </div>
-                <div className="weak-item__bar-bg">
+                <div className="h-1.5 w-full bg-bg-elevated rounded-full overflow-hidden border border-border-subtle">
                   <motion.div
-                    className="weak-item__bar-fill"
+                    className="h-full rounded-full"
                     style={{ background: area.score < 60 ? 'var(--color-error)' : 'var(--color-warning)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${area.score}%` }}
@@ -242,37 +302,50 @@ const Dashboard = () => {
         </section>
 
         {/* -- Recent interviews -- */}
-        <section className="dash-card recent-card" aria-labelledby="recent-heading">
-          <div className="dash-card__header">
-            <h2 className="dash-card__title" id="recent-heading">Recent interviews</h2>
-            <BarChart2 size={14} className="dash-card__header-icon" aria-hidden="true" />
+        <section
+          className="lg:col-span-4 bg-bg-surface border border-border rounded-2xl overflow-hidden shadow-sm flex flex-col p-6 gap-4"
+          aria-labelledby="recent-heading"
+        >
+          <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary" id="recent-heading">
+              Recent sessions
+            </h2>
+            <BarChart2 size={16} className="text-text-tertiary" aria-hidden="true" />
           </div>
+
           {RECENT_INTERVIEWS.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state__title">Your interview lab is empty.</p>
-              <p className="empty-state__desc">Connect a repository and start your first session.</p>
-              <Button variant="primary" size="sm" onClick={() => navigate('/interview')}>Start interview</Button>
+            <div className="py-8 flex flex-col items-center justify-center text-center gap-3">
+              <p className="text-sm text-text-tertiary">No past interviews recorded yet.</p>
+              <Button variant="primary" size="sm" onClick={() => navigate('/interview')}>
+                Start first session
+              </Button>
             </div>
           ) : (
-            <div className="recent-list">
+            <div className="flex flex-col divide-y divide-border-subtle">
               {RECENT_INTERVIEWS.map((iv, i) => (
                 <motion.div
                   key={iv.id}
-                  className="recent-item"
+                  className="py-3 flex items-center justify-between gap-3 text-xs"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: i * 0.07 }}
                 >
-                  <div className="recent-item__date mono">{iv.date}</div>
-                  <div className="recent-item__info">
-                    <span>{iv.questionsAnswered} questions · {iv.duration}</span>
-                    <span className="recent-item__weak">↳ {iv.weakArea}</span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-2xs text-text-disabled">{iv.date}</span>
+                    <span className="text-text-primary font-medium">
+                      {iv.questionsAnswered} questions · {iv.duration}
+                    </span>
+                    <span className="text-text-tertiary text-2xs">↳ {iv.weakArea}</span>
                   </div>
-                  <div className="recent-item__score">
-                    <span className="recent-item__score-val">{iv.score}</span>
-                    <span className={`recent-item__delta ${iv.improvement >= 0 ? 'recent-item__delta--up' : 'recent-item__delta--down'}`}>
-                      {iv.improvement >= 0 ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                      {Math.abs(iv.improvement)}
+                  <div className="flex flex-col items-end gap-0.5">
+                    <span className="text-lg font-semibold font-mono text-text-primary">{iv.score}</span>
+                    <span
+                      className={`flex items-center gap-0.5 font-mono text-2xs ${
+                        iv.improvement >= 0 ? 'text-success' : 'text-error'
+                      }`}
+                    >
+                      {iv.improvement >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                      {Math.abs(iv.improvement)} pts
                     </span>
                   </div>
                 </motion.div>
@@ -280,21 +353,23 @@ const Dashboard = () => {
             </div>
           )}
         </section>
-
       </div>
 
       {/* === TOP QUESTIONS === */}
-      <section className="container top-questions" aria-labelledby="questions-heading">
-        <div className="top-questions__header">
+      <section className="max-w-7xl mx-auto px-6 pt-12" aria-labelledby="questions-heading">
+        <div className="flex items-end justify-between mb-6">
           <div>
-            <p className="section-label">Top questions</p>
-            <h2 id="questions-heading" className="top-questions__title">Most likely to be asked</h2>
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">Curated Questions</p>
+            <h2 id="questions-heading" className="text-2xl font-semibold text-text-primary tracking-tight mt-1">
+              Top predicted questions
+            </h2>
           </div>
           <Button variant="secondary" size="sm" rightIcon={<ChevronRight size={13} />} onClick={() => navigate('/questions')}>
             All {QUESTIONS.length} questions
           </Button>
         </div>
-        <div className="top-questions__grid">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {QUESTIONS.slice(0, 4).map((q, i) => (
             <DashboardQuestionCard key={q.id} q={q} index={i} />
           ))}

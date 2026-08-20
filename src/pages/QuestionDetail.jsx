@@ -6,7 +6,6 @@ import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import CodeBlock from '../components/ui/CodeBlock';
 import { QUESTIONS } from '../data/fixtures';
-import './QuestionDetail.css';
 
 const DifficultyConfig = {
   easy: { variant: 'success', label: 'Easy' },
@@ -26,67 +25,80 @@ const QuestionDetail = () => {
   const nextQ = QUESTIONS[currentIndex + 1];
 
   return (
-    <div className="question-detail page">
-      <div className="question-detail__inner container">
-
+    <div className="min-h-screen pb-16">
+      <div className="max-w-7xl mx-auto px-6 pt-8">
         {/* Breadcrumb nav */}
         <motion.div
-          className="qd-nav"
+          className="flex items-center justify-between mb-8"
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <button className="qd-back" onClick={() => navigate('/questions')} aria-label="Back to questions">
+          <button
+            className="inline-flex items-center gap-2 text-xs text-text-tertiary hover:text-text-primary transition-colors cursor-pointer"
+            onClick={() => navigate('/questions')}
+            aria-label="Back to questions"
+          >
             <ArrowLeft size={14} />
             <span>All questions</span>
           </button>
           {nextQ && (
-            <button className="qd-next" onClick={() => navigate(`/questions/${nextQ.id}`)} aria-label="Next question">
+            <button
+              className="inline-flex items-center gap-2 text-xs text-text-tertiary hover:text-text-primary bg-bg-elevated/60 hover:bg-bg-elevated border border-border-subtle px-3 py-1.5 rounded-lg transition-all cursor-pointer max-w-xs"
+              onClick={() => navigate(`/questions/${nextQ.id}`)}
+              aria-label="Next question"
+            >
               <span>Next</span>
-              <span className="qd-next__name">{nextQ.question.slice(0, 40)}…</span>
-              <span className="qd-next__arrow" aria-hidden="true">→</span>
+              <span className="text-text-tertiary truncate">{nextQ.question}</span>
+              <span aria-hidden="true">→</span>
             </button>
           )}
         </motion.div>
 
-        <div className="qd-layout">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left: main content */}
-          <main className="qd-main" role="main">
+          <main className="lg:col-span-8 flex flex-col gap-8" role="main">
             {/* Metadata strip */}
             <motion.div
-              className="qd-meta"
+              className="flex items-center gap-3 flex-wrap"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, delay: 0.05 }}
             >
-              <Badge variant={diff.variant} size="md">{diff.label}</Badge>
-              <Badge variant="neutral" size="md">{q.category}</Badge>
-              <div className="qd-prob">
+              <Badge variant={diff.variant} size="md">
+                {diff.label}
+              </Badge>
+              <Badge variant="neutral" size="md">
+                {q.category}
+              </Badge>
+              <div className="flex items-center gap-2.5">
                 <div
-                  className="qd-prob__bar"
+                  className="w-20 h-1.5 bg-bg-elevated rounded-full overflow-hidden border border-border-subtle"
                   aria-label={`${q.probability}% probability`}
                   title={`${q.probability}% probability of being asked`}
                 >
                   <motion.div
-                    className="qd-prob__fill"
+                    className="h-full rounded-full"
                     style={{ background: q.probability >= 85 ? 'var(--color-success)' : 'var(--color-warning)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${q.probability}%` }}
                     transition={{ duration: 0.8, delay: 0.4 }}
                   />
                 </div>
-                <span className="qd-prob__label">{q.probability}% likely</span>
+                <span className="text-xs text-text-tertiary font-mono">{q.probability}% likely</span>
               </div>
-              <div className="qd-tags">
+              <div className="flex items-center gap-1.5 ml-auto">
                 {q.tags.map(tag => (
-                  <span key={tag} className="qd-tag mono">#{tag}</span>
+                  <span key={tag} className="font-mono text-2xs text-text-disabled bg-bg-elevated px-2 py-0.5 rounded border border-border-subtle">
+                    #{tag}
+                  </span>
                 ))}
               </div>
             </motion.div>
 
             {/* The question */}
             <motion.h1
-              className="qd-question"
+              className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary leading-tight"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.1 }}
@@ -96,38 +108,38 @@ const QuestionDetail = () => {
 
             {/* Why you'll be asked */}
             <motion.section
-              className="qd-section"
+              className="flex flex-col gap-3 bg-bg-surface/50 border border-border-subtle p-5 rounded-2xl"
               aria-labelledby="why-heading"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.15 }}
             >
-              <div className="qd-section__label">
-                <BookOpen size={13} aria-hidden="true" />
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-text-tertiary">
+                <BookOpen size={14} className="text-accent" aria-hidden="true" />
                 <span id="why-heading">Why you'll be asked this</span>
               </div>
-              <p className="qd-section__body">{q.whyAsked}</p>
+              <p className="text-sm text-text-secondary leading-relaxed">{q.whyAsked}</p>
             </motion.section>
 
             {/* Strong answer (collapsible) */}
             <motion.section
-              className="qd-section qd-section--collapsible"
+              className="flex flex-col border border-border-subtle rounded-2xl overflow-hidden bg-bg-surface/30"
               aria-labelledby="answer-heading"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.2 }}
             >
               <button
-                className="qd-section__toggle"
+                className="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-bg-elevated/40 transition-colors"
                 onClick={() => setAnswerExpanded(e => !e)}
                 aria-expanded={answerExpanded}
                 aria-controls="answer-body"
               >
-                <div className="qd-section__label">
-                  <MessageSquare size={13} aria-hidden="true" />
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-text-tertiary">
+                  <MessageSquare size={14} className="text-accent" aria-hidden="true" />
                   <span id="answer-heading">Strong answer</span>
                 </div>
-                {answerExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {answerExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
               </button>
               <AnimatePresence initial={false}>
                 {answerExpanded && (
@@ -139,7 +151,11 @@ const QuestionDetail = () => {
                     transition={{ duration: 0.3, ease: [0.0, 0, 0.2, 1] }}
                     style={{ overflow: 'hidden' }}
                   >
-                    <p className="qd-section__body qd-answer">{q.strongAnswer}</p>
+                    <div className="p-5 pt-0 border-t border-border-subtle bg-bg-elevated/30">
+                      <p className="text-sm text-text-secondary leading-relaxed pl-4 border-l-2 border-accent my-3">
+                        {q.strongAnswer}
+                      </p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -147,23 +163,23 @@ const QuestionDetail = () => {
 
             {/* Repository evidence */}
             <motion.section
-              className="qd-section"
+              className="flex flex-col border border-border-subtle rounded-2xl overflow-hidden bg-bg-surface/30"
               aria-labelledby="evidence-heading"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: 0.25 }}
             >
               <button
-                className="qd-section__toggle"
+                className="w-full flex items-center justify-between p-5 text-left cursor-pointer hover:bg-bg-elevated/40 transition-colors"
                 onClick={() => setEvidenceExpanded(e => !e)}
                 aria-expanded={evidenceExpanded}
                 aria-controls="evidence-body"
               >
-                <div className="qd-section__label">
-                  <Code2 size={13} aria-hidden="true" />
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-text-tertiary">
+                  <Code2 size={14} className="text-accent" aria-hidden="true" />
                   <span id="evidence-heading">Repository evidence</span>
                 </div>
-                {evidenceExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {evidenceExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
               </button>
               <AnimatePresence initial={false}>
                 {evidenceExpanded && (
@@ -175,7 +191,7 @@ const QuestionDetail = () => {
                     transition={{ duration: 0.3, ease: [0.0, 0, 0.2, 1] }}
                     style={{ overflow: 'hidden' }}
                   >
-                    <div className="qd-evidence">
+                    <div className="p-5 pt-0">
                       <CodeBlock
                         code={q.evidence.code}
                         language={q.evidence.language}
@@ -192,24 +208,28 @@ const QuestionDetail = () => {
           </main>
 
           {/* Right sidebar */}
-          <aside className="qd-sidebar" aria-label="Question details">
+          <aside className="lg:col-span-4 flex flex-col gap-6" aria-label="Question details">
             <motion.div
-              className="qd-sidebar__section"
+              className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-4 shadow-sm"
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <p className="qd-sidebar__title">Follow-up questions</p>
-              <ul className="qd-followup-list">
+              <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary border-b border-border-subtle pb-3">
+                Follow-up questions
+              </p>
+              <ul className="flex flex-col gap-3">
                 {q.followUp.map((fq, i) => (
                   <motion.li
                     key={i}
-                    className="qd-followup-item"
+                    className="flex items-start gap-2 text-xs text-text-secondary leading-relaxed"
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 + i * 0.07 }}
                   >
-                    <span className="qd-followup-item__arrow" aria-hidden="true">›</span>
+                    <span className="text-accent font-bold" aria-hidden="true">
+                      ›
+                    </span>
                     <span>{fq}</span>
                   </motion.li>
                 ))}
@@ -217,12 +237,12 @@ const QuestionDetail = () => {
             </motion.div>
 
             <motion.div
-              className="qd-sidebar__section"
+              className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm"
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
             >
-              <p className="qd-sidebar__title">Practice this question</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">Practice this question</p>
               <Button variant="primary" size="md" onClick={() => navigate('/interview')} className="w-full">
                 Start mock interview
               </Button>
@@ -230,37 +250,30 @@ const QuestionDetail = () => {
 
             {/* Related questions */}
             <motion.div
-              className="qd-sidebar__section"
+              className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm"
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.5 }}
             >
-              <p className="qd-sidebar__title">More in {q.category}</p>
-              <ul className="qd-related-list">
-                {QUESTIONS.filter(rq => rq.category === q.category && rq.id !== q.id).slice(0, 3).map(rq => (
-                  <li key={rq.id}>
-                    <button
-                      className="qd-related-item"
-                      onClick={() => navigate(`/questions/${rq.id}`)}
-                    >
-                      <Badge variant={DifficultyConfig[rq.difficulty].variant} size="xs">{rq.difficulty}</Badge>
-                      <span>{rq.question.slice(0, 60)}{rq.question.length > 60 ? '…' : ''}</span>
-                    </button>
-                  </li>
-                ))}
-                {QUESTIONS.filter(rq => rq.category === q.category && rq.id !== q.id).length === 0 && (
-                  QUESTIONS.filter(rq => rq.id !== q.id).slice(0, 3).map(rq => (
+              <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary border-b border-border-subtle pb-3">
+                More in {q.category}
+              </p>
+              <ul className="flex flex-col gap-2">
+                {QUESTIONS.filter(rq => rq.id !== q.id)
+                  .slice(0, 3)
+                  .map(rq => (
                     <li key={rq.id}>
                       <button
-                        className="qd-related-item"
+                        className="w-full flex items-start gap-2 p-2.5 rounded-lg text-left text-xs text-text-secondary hover:text-text-primary hover:bg-bg-elevated border border-transparent hover:border-border-subtle transition-all cursor-pointer"
                         onClick={() => navigate(`/questions/${rq.id}`)}
                       >
-                        <Badge variant={DifficultyConfig[rq.difficulty].variant} size="xs">{rq.difficulty}</Badge>
-                        <span>{rq.question.slice(0, 60)}{rq.question.length > 60 ? '…' : ''}</span>
+                        <Badge variant={DifficultyConfig[rq.difficulty].variant} size="xs">
+                          {rq.difficulty}
+                        </Badge>
+                        <span className="truncate flex-1">{rq.question}</span>
                       </button>
                     </li>
-                  ))
-                )}
+                  ))}
               </ul>
             </motion.div>
           </aside>
