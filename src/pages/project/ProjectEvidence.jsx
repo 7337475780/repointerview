@@ -1,55 +1,50 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileCode, Code2, ArrowRight, Folder } from 'lucide-react';
+import { FileCode, Code2, ArrowRight } from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import CodeBlock from '../../components/ui/CodeBlock';
+import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
-import { QUESTIONS } from '../../data/fixtures';
 
 const ProjectEvidence = () => {
   const { id } = useParams();
   const { projects } = useProject();
   const navigate = useNavigate();
 
-  const project = projects.find(p => p.id === id) || projects[0];
+  const project = projects.find(p => p.id === id);
 
-  // Group questions by evidence file
-  const evidenceFiles = [
-    {
-      path: 'prisma/schema.prisma',
-      category: 'Database Schema',
-      language: 'prisma',
-      question: QUESTIONS[0],
-    },
-    {
-      path: 'src/lib/auth.ts',
-      category: 'Security & Auth',
-      language: 'typescript',
-      question: QUESTIONS[1],
-    },
-    {
-      path: 'src/server/api/routers/page.ts',
-      category: 'API Router (tRPC)',
-      language: 'typescript',
-      question: QUESTIONS[2],
-    },
-    {
-      path: 'src/lib/cache.ts',
-      category: 'Redis Caching Layer',
-      language: 'typescript',
-      question: QUESTIONS[3],
-    },
-    {
-      path: 'src/server/api/routers/upload.ts',
-      category: 'AWS S3 Integration',
-      language: 'typescript',
-      question: QUESTIONS[4],
-    },
-  ];
+  const evidenceFiles = (project?.questions || [])
+    .filter(q => q.evidence)
+    .map(q => ({
+      path: q.evidence.filename,
+      category: q.category,
+      language: q.evidence.language,
+      question: q,
+    }));
 
-  const [selectedFile, setSelectedFile] = useState(evidenceFiles[0]);
+  const [selectedFile, setSelectedFile] = useState(evidenceFiles[0] || null);
+
+  if (!project || evidenceFiles.length === 0) {
+    return (
+      <div className="flex flex-col min-h-full">
+        {project && <ProjectNav projectId={project.id} />}
+        <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
+          <EmptyState
+            icon={<Code2 size={24} className="text-accent" />}
+            title="Source code evidence will be extracted from your repository after analysis."
+            description="Actual project evidence will be linked to specific files, AST tokens, and schema definitions during repository ingestion."
+            actionLabel="Connect Repository"
+            onAction={() => navigate('/projects/new')}
+            className="py-16 max-w-xl"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const activeFile = selectedFile || evidenceFiles[0];
 
   return (
     <div className="flex flex-col min-h-full">
@@ -76,7 +71,7 @@ const ProjectEvidence = () => {
             </p>
             <div className="flex flex-col gap-1">
               {evidenceFiles.map(file => {
-                const isSelected = selectedFile.path === file.path;
+                const isSelected = activeFile?.path === file.path;
                 return (
                   <button
                     key={file.path}
@@ -101,7 +96,7 @@ const ProjectEvidence = () => {
 
           {/* Evidence Inspector */}
           <div className="lg:col-span-8 flex flex-col gap-6">
-            {selectedFile && (
+            {activeFile && (
               <>
                 {/* Associated Question Banner */}
                 <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3 shadow-sm">
@@ -109,20 +104,20 @@ const ProjectEvidence = () => {
                     <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
                       Generated Interview Question
                     </span>
-                    <Badge variant={selectedFile.question.difficulty === 'hard' ? 'error' : 'warning'} size="xs">
-                      {selectedFile.question.difficulty}
+                    <Badge variant={activeFile.question.difficulty === 'hard' ? 'error' : 'warning'} size="xs">
+                      {activeFile.question.difficulty}
                     </Badge>
                   </div>
-                  <h3 className="text-base font-semibold text-text-primary">{selectedFile.question.question}</h3>
+                  <h3 className="text-base font-semibold text-text-primary">{activeFile.question.question}</h3>
                   <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
                     <span className="text-xs text-text-tertiary font-mono">
-                      {selectedFile.question.probability}% probability
+                      {activeFile.question.probability}% probability
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       rightIcon={<ArrowRight size={13} />}
-                      onClick={() => navigate(`/projects/${project.id}/questions/${selectedFile.question.id}`)}
+                      onClick={() => navigate(`/projects/${project.id}/questions/${activeFile.question.id}`)}
                     >
                       View full defense
                     </Button>
@@ -135,10 +130,10 @@ const ProjectEvidence = () => {
                     Source Code Context
                   </p>
                   <CodeBlock
-                    code={selectedFile.question.evidence.code}
-                    language={selectedFile.language}
-                    filename={selectedFile.path}
-                    highlightLines={selectedFile.question.evidence.highlightLines}
+                    code={activeFile.question.evidence.code}
+                    language={activeFile.language}
+                    filename={activeFile.path}
+                    highlightLines={activeFile.question.evidence.highlightLines}
                     collapsible={false}
                     lineNumbers={true}
                   />

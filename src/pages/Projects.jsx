@@ -32,10 +32,11 @@ const Projects = () => {
       {projects.length === 0 ? (
         <EmptyState
           icon={<GitBranch size={22} className="text-accent" />}
-          title="No repositories connected yet"
-          description="Connect a public or private GitHub repository to generate customized interview questions and architecture maps."
-          actionLabel="Connect repository"
+          title="Your project intelligence starts here."
+          description="Connect a GitHub repository and RepoInterview will analyze your codebase and prepare you for the questions that matter."
+          actionLabel="Connect Repository"
           onAction={() => navigate('/projects/new')}
+          className="py-16 max-w-xl"
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

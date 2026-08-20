@@ -1,31 +1,132 @@
 // ============================================================
 // RepoInterview AI — Domain Types & Interfaces
-// Core type definitions for Phase 1 Product Foundation
+// Pure domain models for Repository Ingestion & Interview Preparation
 // ============================================================
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type RepositoryLifecycleStatus =
+  | 'NOT_CONNECTED'
+  | 'CONNECTED'
+  | 'QUEUED'
+  | 'ANALYZING'
+  | 'READY'
+  | 'READY_WITH_WARNINGS'
+  | 'FAILED';
 
-export type QuestionCategory =
-  | 'Architecture'
-  | 'API Design'
-  | 'Database'
-  | 'Security'
-  | 'Performance'
-  | 'Infrastructure'
-  | 'State Management'
-  | 'Testing'
-  | 'Scalability'
-  | 'Tradeoffs';
+export type IngestionStep =
+  | 'IDLE'
+  | 'VALIDATING'
+  | 'FETCHING_METADATA'
+  | 'FETCHING_TREE'
+  | 'SELECTING_FILES'
+  | 'FETCHING_FILES'
+  | 'READY'
+  | 'READY_WITH_WARNINGS'
+  | 'FAILED';
 
-export type PreparationStatus = 'unprepared' | 'practicing' | 'prepared' | 'must_prepare';
+export type FileSkipReason =
+  | 'SKIPPED_LARGE_FILE'
+  | 'SKIPPED_BINARY'
+  | 'SKIPPED_GENERATED'
+  | 'SKIPPED_IRRELEVANT'
+  | 'FETCH_FAILED';
 
-export interface User {
+export interface RepositoryMetadata {
+  id: number;
+  owner: string;
+  name: string;
+  fullName: string;
+  description: string;
+  url: string;
+  defaultBranch: string;
+  commitSha: string;
+  stars: number;
+  forks: number;
+  openIssues: number;
+  primaryLanguage: string;
+  sizeKb: number;
+  isPrivate: boolean;
+  updatedAt: string;
+}
+
+export interface RepositoryFileNode {
+  path: string;
+  mode: string;
+  type: 'blob' | 'tree';
+  sha: string;
+  size?: number;
+  url?: string;
+  score: number;
+  selected: boolean;
+  skipReason?: FileSkipReason;
+}
+
+export interface RepositorySourceFile {
+  path: string;
+  content: string;
+  size: number;
+  language: string;
+  sha: string;
+  score: number;
+}
+
+export interface IngestionWarning {
+  path: string;
+  reason: FileSkipReason;
+  message: string;
+}
+
+export interface IngestionStats {
+  totalDiscoveredFiles: number;
+  totalCandidateFiles: number;
+  selectedFilesCount: number;
+  fetchedFilesCount: number;
+  skippedFilesCount: number;
+  totalSourceBytes: number;
+  durationMs: number;
+}
+
+export interface RepositoryIngestionResult {
+  identity: string; // owner/repo@commitSha
+  repository: Repository;
+  metadata: RepositoryMetadata;
+  commitSha: string;
+  tree: RepositoryFileNode[];
+  selectedFiles: RepositoryFileNode[];
+  sourceFiles: RepositorySourceFile[];
+  stats: IngestionStats;
+  warnings: IngestionWarning[];
+  status: 'READY' | 'READY_WITH_WARNINGS' | 'FAILED';
+  error?: string;
+}
+
+export interface Repository {
   id: string;
   name: string;
-  email: string;
-  avatarUrl?: string;
-  tier: 'free' | 'pro' | 'team';
+  owner: string;
+  fullName: string;
+  url: string;
+  defaultBranch: string;
+  commitSha?: string;
+  stars?: number;
+  forks?: number;
+  description?: string;
+  primaryLanguage?: string;
+  sizeKb?: number;
+}
+
+export interface Project {
+  id: string;
+  repository: Repository;
   createdAt: string;
+  lastAnalyzedAt?: string;
+  status: RepositoryLifecycleStatus;
+  analysisScore: number; // 0 - 100
+  techStack: Technology[];
+  stats?: RepositoryStats;
+  architecture?: ArchitectureMap;
+  questions: Question[];
+  questionsCount: number;
+  ingestion?: RepositoryIngestionResult;
 }
 
 export interface Technology {
@@ -58,7 +159,7 @@ export interface ArchitectureEdge {
 export interface ArchitectureMap {
   nodes: ArchitectureNode[];
   edges: ArchitectureEdge[];
-  lastGeneratedAt: string;
+  lastGeneratedAt?: string;
 }
 
 export interface CodeEvidence {
@@ -71,12 +172,19 @@ export interface CodeEvidence {
   rationale?: string;
 }
 
-export interface FollowUpQuestion {
-  id: string;
-  question: string;
-  category?: string;
-  intent?: string;
-}
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
+export type QuestionCategory =
+  | 'Architecture'
+  | 'API Design'
+  | 'Database'
+  | 'Security'
+  | 'Performance'
+  | 'Infrastructure'
+  | 'State Management'
+  | 'Testing'
+  | 'Scalability'
+  | 'Tradeoffs';
 
 export interface Question {
   id: string;
@@ -84,23 +192,12 @@ export interface Question {
   question: string;
   category: QuestionCategory;
   difficulty: Difficulty;
-  probability: number; // 0 - 100
+  probability: number;
   tags: string[];
   whyAsked: string;
   strongAnswer: string;
-  evidence: CodeEvidence;
+  evidence?: CodeEvidence;
   followUp: string[];
-  status?: PreparationStatus;
-  userNotes?: string;
-}
-
-export type AnalysisStepStatus = 'pending' | 'active' | 'done' | 'failed';
-
-export interface AnalysisPipelineStep {
-  id: string;
-  label: string;
-  status: AnalysisStepStatus;
-  durationMs?: number;
 }
 
 export interface RepositoryStats {
@@ -110,87 +207,4 @@ export interface RepositoryStats {
   apiRoutes: number;
   components: number;
   dbTables: number;
-}
-
-export interface Repository {
-  id: string;
-  name: string;
-  owner: string;
-  fullName: string;
-  url: string;
-  defaultBranch: string;
-  stars?: number;
-  forks?: number;
-  description: string;
-  primaryLanguage: string;
-}
-
-export interface Project {
-  id: string;
-  repository: Repository;
-  createdAt: string;
-  lastAnalyzedAt: string;
-  status: 'idle' | 'analyzing' | 'ready' | 'error';
-  analysisScore: number; // 0 - 100
-  techStack: Technology[];
-  stats: RepositoryStats;
-  architecture: ArchitectureMap;
-  questionsCount: number;
-}
-
-export type MockInterviewMode = 'standard' | 'deep_dive' | 'defense' | 'rapid_fire';
-
-export interface MockInterviewConfig {
-  projectId: string;
-  mode: MockInterviewMode;
-  difficulty: Difficulty | 'mixed';
-  questionCount: number;
-  focusCategories?: QuestionCategory[];
-}
-
-export interface CandidateAnswer {
-  questionId: string;
-  questionText: string;
-  response: string;
-  submittedAt: string;
-  evaluation?: {
-    score: number; // 0 - 100
-    verdict: 'strong' | 'needs_work' | 'missed_key_points';
-    summary: string;
-    strengths: string[];
-    weaknesses: string[];
-    suggestedImprovements: string[];
-  };
-}
-
-export interface MockInterviewSession {
-  id: string;
-  projectId: string;
-  mode: MockInterviewMode;
-  startedAt: string;
-  completedAt?: string;
-  durationSeconds?: number;
-  questions: Question[];
-  currentQuestionIndex: number;
-  answers: CandidateAnswer[];
-  overallScore?: number;
-  feedbackSummary?: string;
-}
-
-export interface DomainScore {
-  domain: string;
-  score: number; // 0 - 100
-  questionsCount: number;
-  status: 'strong' | 'moderate' | 'weak';
-}
-
-export interface InterviewAnalytics {
-  projectId: string;
-  overallReadiness: number;
-  sessionsCompleted: number;
-  totalQuestionsAnswered: number;
-  averageScore: number;
-  domainScores: DomainScore[];
-  scoreHistory: { date: string; score: number }[];
-  recommendedTopics: string[];
 }

@@ -1,26 +1,40 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { GitBranch, Star, Clock, PlaySquare, HelpCircle, Network, ArrowRight, ExternalLink } from 'lucide-react';
+import {
+  GitBranch,
+  Star,
+  Clock,
+  PlaySquare,
+  HelpCircle,
+  Network,
+  ArrowRight,
+  ExternalLink,
+  FileCode,
+  GitFork,
+  CheckCircle2,
+  AlertTriangle,
+} from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
-import { QUESTIONS } from '../../data/fixtures';
 
 const ProjectOverview = () => {
   const { id } = useParams();
-  const { projects } = useProject();
+  const { projects, getActiveIngestion } = useProject();
   const navigate = useNavigate();
 
-  const project = projects.find(p => p.id === id) || projects[0];
+  const project = projects.find(p => p.id === id);
+  const ingestion = getActiveIngestion();
 
   if (!project) {
     return (
-      <div className="p-8">
+      <div className="p-8 max-w-2xl mx-auto">
         <EmptyState
           title="Project not found"
-          description="The requested repository project does not exist."
+          description="The requested repository project does not exist in your workspace."
           actionLabel="View all projects"
           onAction={() => navigate('/projects')}
         />
@@ -28,7 +42,9 @@ const ProjectOverview = () => {
     );
   }
 
-  const isReady = project.status === 'ready';
+  const isIngested = project.status === 'READY' || project.status === 'READY_WITH_WARNINGS';
+  const sourceFiles = ingestion?.sourceFiles || [];
+  const stats = ingestion?.stats;
 
   return (
     <div className="flex flex-col min-h-full">
@@ -43,7 +59,7 @@ const ProjectOverview = () => {
               <GitBranch size={22} />
             </div>
             <div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="font-mono text-2xl font-bold tracking-tight text-text-primary">
                   {project.repository.fullName}
                 </h1>
@@ -56,136 +72,171 @@ const ProjectOverview = () => {
                 >
                   <ExternalLink size={14} />
                 </a>
-                <Badge variant={isReady ? 'success' : 'warning'} size="xs">
-                  {isReady ? 'Analysis Ready' : 'Pending Ingestion'}
+                <Badge
+                  variant={
+                    project.status === 'READY'
+                      ? 'success'
+                      : project.status === 'READY_WITH_WARNINGS'
+                      ? 'warning'
+                      : 'neutral'
+                  }
+                  size="xs"
+                >
+                  {project.status === 'READY'
+                    ? 'Ingestion Complete'
+                    : project.status === 'READY_WITH_WARNINGS'
+                    ? 'Ingested with Warnings'
+                    : 'Pending Ingestion'}
                 </Badge>
               </div>
-              <p className="text-sm text-text-secondary mt-1 max-w-2xl">{project.repository.description}</p>
-              <div className="flex items-center gap-4 text-xs text-text-tertiary mt-3 font-mono">
+
+              {project.repository.description && (
+                <p className="text-sm text-text-secondary mt-1 max-w-2xl">{project.repository.description}</p>
+              )}
+
+              <div className="flex items-center gap-4 text-xs text-text-tertiary mt-3 font-mono flex-wrap">
                 {project.repository.stars !== undefined && (
                   <span className="flex items-center gap-1">
                     <Star size={12} />
                     {project.repository.stars.toLocaleString()} stars
                   </span>
                 )}
+                {project.repository.forks !== undefined && (
+                  <>
+                    <span>·</span>
+                    <span className="flex items-center gap-1">
+                      <GitFork size={12} />
+                      {project.repository.forks.toLocaleString()} forks
+                    </span>
+                  </>
+                )}
                 <span>·</span>
-                <span className="flex items-center gap-1">
-                  <Clock size={12} />
-                  Analyzed {project.lastAnalyzedAt}
-                </span>
+                <span>Branch: {project.repository.defaultBranch}</span>
+                {project.repository.commitSha && (
+                  <>
+                    <span>·</span>
+                    <span className="text-2xs bg-bg-elevated px-1.5 py-0.5 rounded border border-border-subtle">
+                      SHA: {project.repository.commitSha.slice(0, 7)}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <Button
-              variant="primary"
-              size="md"
-              leftIcon={<PlaySquare size={14} />}
-              onClick={() => navigate(`/projects/${project.id}/mock`)}
-            >
-              Start mock interview
-            </Button>
-            <Button
               variant="secondary"
               size="md"
-              leftIcon={<Network size={14} />}
-              onClick={() => navigate(`/projects/${project.id}/architecture`)}
+              leftIcon={<HelpCircle size={14} />}
+              onClick={() => navigate(`/projects/${project.id}/questions`)}
             >
-              View architecture
+              Questions Bank
             </Button>
           </div>
         </div>
 
-        {/* Not analyzed empty state */}
-        {!isReady ? (
-          <EmptyState
-            icon={<HelpCircle size={22} className="text-accent" />}
-            title="Repository analysis pending"
-            description="Repository intelligence, tech stack detection, and question prediction will appear here once the repository analysis pipeline runs."
-            actionLabel="Browse sample questions"
-            onAction={() => navigate('/questions')}
-          />
-        ) : (
-          <>
-            {/* Tech Stack & Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              {/* Stack overview */}
-              <div className="md:col-span-8 bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">
-                  Detected Technology Stack
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {project.techStack.map(tech => (
-                    <span
-                      key={tech.name}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary bg-bg-elevated border border-border-subtle rounded-md px-3 py-1"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: tech.color }} />
-                      <span>{tech.name}</span>
-                      <span className="text-2xs text-text-disabled uppercase ml-1">({tech.category})</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Readiness Score Card */}
-              <div className="md:col-span-4 bg-bg-surface border border-border rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-2 shadow-sm">
-                <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
-                  Interview Readiness
-                </span>
-                <span className="text-4xl font-bold font-sans text-success">
-                  {project.analysisScore}%
-                </span>
-                <p className="text-xs text-text-secondary">
-                  Ready for system design & implementation rounds.
-                </p>
-              </div>
+        {/* Real Ingestion Summary Banner */}
+        {isIngested && stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
+                Discovered Files
+              </span>
+              <span className="font-mono text-xl font-bold text-text-primary">
+                {stats.totalDiscoveredFiles}
+              </span>
             </div>
 
-            {/* Quick Question Preview */}
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">Predicted Questions</p>
-                  <h2 className="text-xl font-bold text-text-primary mt-0.5">High probability questions</h2>
-                </div>
-                <Link to={`/projects/${project.id}/questions`}>
-                  <Button variant="ghost" size="sm" rightIcon={<ArrowRight size={13} />}>
-                    View all {project.questionsCount}
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {QUESTIONS.slice(0, 4).map((q, i) => (
-                  <motion.div
-                    key={q.id}
-                    className="bg-bg-surface border border-border hover:border-border-strong rounded-xl p-5 flex flex-col gap-3 transition-all cursor-pointer shadow-sm group"
-                    onClick={() => navigate(`/projects/${project.id}/questions/${q.id}`)}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge variant={q.difficulty === 'hard' ? 'error' : 'warning'} size="xs">
-                        {q.difficulty}
-                      </Badge>
-                      <Badge variant="neutral" size="xs">
-                        {q.category}
-                      </Badge>
-                      <span className="ml-auto font-mono text-xs text-text-tertiary">{q.probability}% likely</span>
-                    </div>
-                    <p className="text-sm font-medium text-text-primary leading-snug group-hover:text-accent transition-colors">
-                      {q.question}
-                    </p>
-                    <p className="font-mono text-2xs text-text-disabled mt-auto">↳ {q.evidence.filename}</p>
-                  </motion.div>
-                ))}
-              </div>
+            <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
+                Selected for Analysis
+              </span>
+              <span className="font-mono text-xl font-bold text-accent">
+                {stats.fetchedFilesCount} <span className="text-xs text-text-disabled">/ {stats.selectedFilesCount}</span>
+              </span>
             </div>
-          </>
+
+            <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
+                Total Ingested Size
+              </span>
+              <span className="font-mono text-xl font-bold text-text-primary">
+                {Math.round(stats.totalSourceBytes / 1024)} KB
+              </span>
+            </div>
+
+            <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
+                Primary Language
+              </span>
+              <span className="font-mono text-base font-bold text-text-primary truncate">
+                {project.repository.primaryLanguage || 'TypeScript'}
+              </span>
+            </div>
+          </div>
         )}
+
+        {/* Ingested Source Files Catalog */}
+        {sourceFiles.length > 0 && (
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">
+                  Source Ingestion Payload
+                </p>
+                <h2 className="text-lg font-bold text-text-primary mt-0.5">
+                  Selected High-Relevance Files ({sourceFiles.length})
+                </h2>
+              </div>
+              <span className="text-2xs font-mono text-text-tertiary bg-bg-elevated px-2.5 py-1 rounded-lg border border-border-subtle">
+                Ready for Phase 3 AST parsing
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-96 overflow-y-auto pt-2">
+              {sourceFiles.map((file) => (
+                <div
+                  key={file.path}
+                  className="p-3 bg-bg-elevated/70 hover:bg-bg-elevated border border-border-subtle rounded-xl flex items-center justify-between gap-3 text-xs font-mono transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileCode size={14} className="text-accent flex-shrink-0" />
+                    <span className="text-text-primary truncate">{file.path}</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-2xs text-text-tertiary">
+                      {Math.round((file.size / 1024) * 10) / 10} KB
+                    </span>
+                    <span className="text-2xs bg-bg-surface px-1.5 py-0.5 rounded border border-border-subtle text-accent font-semibold">
+                      score {file.score}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Phase 3 Analysis Callout */}
+        <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-accent-subtle border border-accent-border flex items-center justify-center text-accent flex-shrink-0">
+              <CheckCircle2 size={16} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary">
+                Repository Ingested & Verified
+              </p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                AST parsing, technology detection, and interview question generation will run in Phase 3.
+              </p>
+            </div>
+          </div>
+          <Badge variant="neutral" size="sm">
+            Phase 3 Ready
+          </Badge>
+        </div>
       </div>
     </div>
   );

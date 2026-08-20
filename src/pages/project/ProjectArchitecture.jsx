@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Network } from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
-import { QUESTIONS } from '../../data/fixtures';
 
 const NODE_TYPE_COLORS = {
   frontend: '#4ADE80',
@@ -35,18 +35,20 @@ const ProjectArchitecture = () => {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
 
-  const project = projects.find(p => p.id === id) || projects[0];
+  const project = projects.find(p => p.id === id);
 
   if (!project || !project.architecture || project.architecture.nodes.length === 0) {
     return (
       <div className="flex flex-col min-h-full">
-        <ProjectNav projectId={id || 'notionify'} />
-        <div className="p-12 max-w-2xl mx-auto">
+        {project && <ProjectNav projectId={project.id} />}
+        <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
           <EmptyState
-            title="Architecture map pending"
-            description="The architecture topology graph will be generated when repository AST and services are mapped in Phase 2."
-            actionLabel="View questions"
-            onAction={() => navigate(`/projects/${id || 'notionify'}/questions`)}
+            icon={<Network size={24} className="text-accent" />}
+            title="Your architecture map will appear after repository analysis."
+            description="Once your codebase is ingested, we will automatically infer service boundaries, data stores, ORMs, and API routes into a topological graph."
+            actionLabel="Connect Repository"
+            onAction={() => navigate('/projects/new')}
+            className="py-16 max-w-xl"
           />
         </div>
       </div>
@@ -71,8 +73,8 @@ const ProjectArchitecture = () => {
   };
 
   const selectedNodeData = positionedNodes.find(n => n.id === selectedNode);
-  const relatedQuestions = selectedNode
-    ? QUESTIONS.filter(q =>
+  const relatedQuestions = selectedNode && project.questions
+    ? project.questions.filter(q =>
         q.tags.some(t => selectedNode.includes(t) || t.includes(selectedNode.replace('postgres', 'database')))
       ).slice(0, 3)
     : [];

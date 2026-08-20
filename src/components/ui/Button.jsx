@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 
 const variantStyles = {
   primary:
-    'bg-accent hover:bg-accent-hover active:bg-accent-active text-text-primary shadow-xs border border-accent hover:border-accent-hover',
+    'btn-primary-gradient font-medium',
   secondary:
-    'bg-bg-elevated hover:bg-bg-overlay active:bg-bg-surface text-text-primary border border-border hover:border-border-strong',
+    'bg-bg-elevated hover:bg-bg-overlay active:bg-bg-surface text-text-primary border border-border hover:border-border-strong shadow-2xs',
   ghost:
     'bg-transparent hover:bg-bg-elevated active:bg-bg-surface text-text-secondary hover:text-text-primary border border-transparent',
   danger:

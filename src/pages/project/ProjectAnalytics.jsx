@@ -1,7 +1,8 @@
-import { useParams } from 'react-router-dom';
-import { BarChart3, TrendingUp, ShieldCheck, Database, Server, Cpu, Layers } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { BarChart3, ShieldCheck, Database, Server, Cpu, Layers } from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
 
 const DOMAIN_BREAKDOWN = [
@@ -15,8 +16,27 @@ const DOMAIN_BREAKDOWN = [
 const ProjectAnalytics = () => {
   const { id } = useParams();
   const { projects } = useProject();
+  const navigate = useNavigate();
 
-  const project = projects.find(p => p.id === id) || projects[0];
+  const project = projects.find(p => p.id === id);
+
+  if (!project || project.status !== 'READY') {
+    return (
+      <div className="flex flex-col min-h-full">
+        {project && <ProjectNav projectId={project.id} />}
+        <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
+          <EmptyState
+            icon={<BarChart3 size={24} className="text-accent" />}
+            title="Your interview readiness will be calculated after we understand your project."
+            description="Knowledge radar and domain competency scores across architecture, database, security, and performance will be computed once repository analysis completes."
+            actionLabel="Connect Repository"
+            onAction={() => navigate('/projects/new')}
+            className="py-16 max-w-xl"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -100,11 +120,6 @@ const ProjectAnalytics = () => {
               <p className="text-xs text-text-secondary leading-relaxed">
                 Prioritize practicing database transaction isolation and query optimization tradeoffs before interview rounds.
               </p>
-              <div className="flex flex-col gap-2 pt-2 border-t border-border-subtle">
-                <span className="text-2xs font-mono text-text-tertiary">Target questions:</span>
-                <span className="text-xs font-medium text-accent">↳ PostgreSQL vs MongoDB architectural tradeoffs</span>
-                <span className="text-xs font-medium text-accent">↳ Redis caching invalidation jitter strategies</span>
-              </div>
             </div>
           </div>
         </div>

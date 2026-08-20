@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, Filter } from 'lucide-react';
+import { Search, ChevronRight, HelpCircle } from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
-import { QUESTIONS } from '../../data/fixtures';
 
 const CATEGORIES = ['All', 'Architecture', 'Database', 'Security', 'API Design', 'Performance', 'Infrastructure'];
-const STATUS_FILTERS = ['all', 'high_probability', 'hard', 'unprepared'];
 
 const ProjectQuestions = () => {
   const { id } = useParams();
@@ -20,9 +18,28 @@ const ProjectQuestions = () => {
   const [category, setCategory] = useState('All');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const project = projects.find(p => p.id === id) || projects[0];
+  const project = projects.find(p => p.id === id);
+  const questionsList = project?.questions || [];
 
-  const filtered = QUESTIONS.filter(q => {
+  if (!project || questionsList.length === 0) {
+    return (
+      <div className="flex flex-col min-h-full">
+        {project && <ProjectNav projectId={project.id} />}
+        <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
+          <EmptyState
+            icon={<HelpCircle size={24} className="text-accent" />}
+            title="No project-specific questions yet."
+            description="Analyze your repository to discover the questions an interviewer is most likely to ask."
+            actionLabel="Connect Repository"
+            onAction={() => navigate('/projects/new')}
+            className="py-16 max-w-xl"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const filtered = questionsList.filter(q => {
     const matchSearch =
       q.question.toLowerCase().includes(search.toLowerCase()) ||
       q.category.toLowerCase().includes(search.toLowerCase());
@@ -53,7 +70,7 @@ const ProjectQuestions = () => {
             </p>
           </div>
           <span className="text-xs font-mono text-text-tertiary bg-bg-elevated px-3 py-1.5 rounded-lg border border-border-subtle self-start">
-            {QUESTIONS.length} Questions Ingested
+            {questionsList.length} Questions Ingested
           </span>
         </div>
 
@@ -148,7 +165,9 @@ const ProjectQuestions = () => {
                   <p className="text-base font-medium text-text-primary leading-snug group-hover:text-accent transition-colors">
                     {q.question}
                   </p>
-                  <p className="font-mono text-xs text-text-disabled">↳ {q.evidence.filename}</p>
+                  {q.evidence && (
+                    <p className="font-mono text-xs text-text-disabled">↳ {q.evidence.filename}</p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-4 flex-shrink-0">

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { GitBranch, ArrowRight, CheckCircle2, ChevronRight, Network, MessageSquare, Zap } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { QUESTIONS } from '../data/fixtures';
+import { DEMO_QUESTIONS } from '../data/demo/demoFixtures';
 
 const TECH_STACK = [
   { name: 'Next.js 14', color: '#4ADE80' },
@@ -486,8 +486,8 @@ const Landing = () => {
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.55, delay: 0.1 }}
             >
-              <SampleQuestionCard q={QUESTIONS[0]} />
-              <SampleQuestionCard q={QUESTIONS[2]} />
+              <SampleQuestionCard q={DEMO_QUESTIONS[0]} />
+              <SampleQuestionCard q={DEMO_QUESTIONS[2]} />
             </motion.div>
           </div>
 

@@ -6,7 +6,6 @@ import {
   Sparkles,
   ShieldAlert,
   Flame,
-  Zap,
   X,
   Send,
   SkipForward,
@@ -17,8 +16,8 @@ import {
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
+import EmptyState from '../../components/ui/EmptyState';
 import { useProject } from '../../context/ProjectContext';
-import { QUESTIONS } from '../../data/fixtures';
 
 const MODES = [
   {
@@ -66,8 +65,26 @@ const ProjectMock = () => {
   const [submitted, setSubmitted] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  const activeQuestions = QUESTIONS.slice(0, questionCount);
-  const currentQ = activeQuestions[questionIndex % activeQuestions.length] || QUESTIONS[0];
+  if (!project || !project.questions || project.questions.length === 0) {
+    return (
+      <div className="flex flex-col min-h-full">
+        {project && <ProjectNav projectId={project.id} />}
+        <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
+          <EmptyState
+            icon={<PlaySquare size={24} className="text-accent" />}
+            title="An analyzed repository is required for project mock interviews."
+            description="Connect and analyze your repository to generate tailored questions before starting an adaptive interview simulation."
+            actionLabel="Connect Repository"
+            onAction={() => navigate('/projects/new')}
+            className="py-16 max-w-xl"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const activeQuestions = project.questions.slice(0, questionCount);
+  const currentQ = activeQuestions[questionIndex % activeQuestions.length] || project.questions[0];
   const progress = ((questionIndex + 1) / questionCount) * 100;
 
   const handleStartSession = () => {
