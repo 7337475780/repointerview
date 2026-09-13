@@ -28,6 +28,19 @@ export const projectService = {
    * Filter and query projects by lifecycle state
    */
   isProjectReady(project: Project | null | undefined): boolean {
-    return Boolean(project && project.status === 'READY');
+    return Boolean(project && (project.status === 'READY' || project.status === 'ANALYZED'));
+  },
+
+  /**
+   * Check if project has completed deterministic intelligence analysis
+   */
+  isProjectAnalyzed(project: Project | null | undefined): boolean {
+    return Boolean(
+      project &&
+        (project.status === 'ANALYZED' ||
+          project.status === 'READY' ||
+          project.status === 'ANALYSIS_WITH_WARNINGS' ||
+          Boolean(project.intelligence))
+    );
   },
 };

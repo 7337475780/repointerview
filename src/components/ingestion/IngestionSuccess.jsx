@@ -29,7 +29,7 @@ const IngestionSuccess = ({ result, onOpenWorkspace }) => {
                 {repository.fullName}
               </h2>
               <Badge variant={warnings.length > 0 ? 'warning' : 'success'} size="xs">
-                {warnings.length > 0 ? 'Ready with warnings' : 'Ready for analysis'}
+                {warnings.length > 0 ? 'Analyzed with warnings' : 'Analysis Complete'}
               </Badge>
             </div>
             <p className="text-xs text-text-secondary mt-1 max-w-xl">
@@ -139,7 +139,7 @@ const IngestionSuccess = ({ result, onOpenWorkspace }) => {
       {/* Action Footer */}
       <div className="border-t border-border-subtle pt-6 flex items-center justify-between">
         <span className="text-xs text-text-tertiary">
-          Ingestion complete in {Math.round(stats.durationMs / 100) / 10}s. Ready for Phase 3 analysis.
+          Ingested and analyzed in {Math.round(stats.durationMs / 100) / 10}s. Intelligence profile ready.
         </span>
         <Button
           variant="primary"

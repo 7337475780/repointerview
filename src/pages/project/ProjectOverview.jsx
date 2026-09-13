@@ -1,33 +1,42 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   GitBranch,
   Star,
-  Clock,
-  PlaySquare,
-  HelpCircle,
-  Network,
-  ArrowRight,
-  ExternalLink,
-  FileCode,
   GitFork,
   CheckCircle2,
-  AlertTriangle,
+  ExternalLink,
+  HelpCircle,
+  Network,
 } from 'lucide-react';
 import ProjectNav from '../../components/layout/ProjectNav';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import EmptyState from '../../components/ui/EmptyState';
+import TechnologyGrid from '../../components/intelligence/TechnologyGrid';
+import LanguageBreakdown from '../../components/intelligence/LanguageBreakdown';
+import ApiSurfaceTable from '../../components/intelligence/ApiSurfaceTable';
+import DatabaseSchemaViewer from '../../components/intelligence/DatabaseSchemaViewer';
+import FindingInspector from '../../components/intelligence/FindingInspector';
 import { useProject } from '../../context/ProjectContext';
+import { repositoryAnalysisService } from '../../services/repositoryAnalysisService';
 
 const ProjectOverview = () => {
   const { id } = useParams();
   const { projects, getActiveIngestion } = useProject();
   const navigate = useNavigate();
 
-  const project = projects.find(p => p.id === id);
-  const ingestion = getActiveIngestion();
+  const project = (id ? projects.find(p => p.id === id) : null) || projects[0] || null;
+  const ingestion = getActiveIngestion(project?.id);
+
+  // If intelligence is not cached yet, compute it deterministically on the fly
+  let intelligence = project?.intelligence;
+  if (!intelligence && ingestion) {
+    try {
+      intelligence = repositoryAnalysisService.analyzeRepository(ingestion);
+    } catch {}
+  }
 
   if (!project) {
     return (
@@ -42,8 +51,6 @@ const ProjectOverview = () => {
     );
   }
 
-  const isIngested = project.status === 'READY' || project.status === 'READY_WITH_WARNINGS';
-  const sourceFiles = ingestion?.sourceFiles || [];
   const stats = ingestion?.stats;
 
   return (
@@ -72,21 +79,8 @@ const ProjectOverview = () => {
                 >
                   <ExternalLink size={14} />
                 </a>
-                <Badge
-                  variant={
-                    project.status === 'READY'
-                      ? 'success'
-                      : project.status === 'READY_WITH_WARNINGS'
-                      ? 'warning'
-                      : 'neutral'
-                  }
-                  size="xs"
-                >
-                  {project.status === 'READY'
-                    ? 'Ingestion Complete'
-                    : project.status === 'READY_WITH_WARNINGS'
-                    ? 'Ingested with Warnings'
-                    : 'Pending Ingestion'}
+                <Badge variant="success" size="xs">
+                  Analysis Complete
                 </Badge>
               </div>
 
@@ -128,6 +122,14 @@ const ProjectOverview = () => {
             <Button
               variant="secondary"
               size="md"
+              leftIcon={<Network size={14} />}
+              onClick={() => navigate(`/projects/${project.id}/architecture`)}
+            >
+              View Architecture
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               leftIcon={<HelpCircle size={14} />}
               onClick={() => navigate(`/projects/${project.id}/questions`)}
             >
@@ -137,7 +139,7 @@ const ProjectOverview = () => {
         </div>
 
         {/* Real Ingestion Summary Banner */}
-        {isIngested && stats && (
+        {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
               <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
@@ -150,7 +152,7 @@ const ProjectOverview = () => {
 
             <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
               <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
-                Selected for Analysis
+                Ingested Source Files
               </span>
               <span className="font-mono text-xl font-bold text-accent">
                 {stats.fetchedFilesCount} <span className="text-xs text-text-disabled">/ {stats.selectedFilesCount}</span>
@@ -168,75 +170,49 @@ const ProjectOverview = () => {
 
             <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-1 shadow-xs">
               <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
-                Primary Language
+                Architecture Pattern
               </span>
-              <span className="font-mono text-base font-bold text-text-primary truncate">
-                {project.repository.primaryLanguage || 'TypeScript'}
+              <span className="font-mono text-xs font-bold text-text-primary truncate">
+                {intelligence?.structure?.pattern || 'Standard Modular'}
               </span>
             </div>
           </div>
         )}
 
-        {/* Ingested Source Files Catalog */}
-        {sourceFiles.length > 0 && (
-          <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">
-                  Source Ingestion Payload
-                </p>
-                <h2 className="text-lg font-bold text-text-primary mt-0.5">
-                  Selected High-Relevance Files ({sourceFiles.length})
-                </h2>
-              </div>
-              <span className="text-2xs font-mono text-text-tertiary bg-bg-elevated px-2.5 py-1 rounded-lg border border-border-subtle">
-                Ready for Phase 3 AST parsing
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-96 overflow-y-auto pt-2">
-              {sourceFiles.map((file) => (
-                <div
-                  key={file.path}
-                  className="p-3 bg-bg-elevated/70 hover:bg-bg-elevated border border-border-subtle rounded-xl flex items-center justify-between gap-3 text-xs font-mono transition-colors"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <FileCode size={14} className="text-accent flex-shrink-0" />
-                    <span className="text-text-primary truncate">{file.path}</span>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-2xs text-text-tertiary">
-                      {Math.round((file.size / 1024) * 10) / 10} KB
-                    </span>
-                    <span className="text-2xs bg-bg-surface px-1.5 py-0.5 rounded border border-border-subtle text-accent font-semibold">
-                      score {file.score}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Source Language Distribution */}
+        {intelligence?.languages && (
+          <LanguageBreakdown languages={intelligence.languages} />
         )}
 
-        {/* Phase 3 Analysis Callout */}
-        <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-accent-subtle border border-accent-border flex items-center justify-center text-accent flex-shrink-0">
-              <CheckCircle2 size={16} />
-            </div>
+        {/* Detected Technology Stack */}
+        {intelligence?.technologies && (
+          <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-6 shadow-sm">
             <div>
-              <p className="text-sm font-semibold text-text-primary">
-                Repository Ingested & Verified
-              </p>
-              <p className="text-xs text-text-secondary mt-0.5">
-                AST parsing, technology detection, and interview question generation will run in Phase 3.
-              </p>
+              <span className="text-2xs font-semibold uppercase tracking-widest text-text-tertiary">
+                Deterministic Technology Profile
+              </span>
+              <h2 className="text-lg font-bold text-text-primary mt-0.5">
+                Verified Technology Stack ({intelligence.technologies.length})
+              </h2>
             </div>
+            <TechnologyGrid technologies={intelligence.technologies} />
           </div>
-          <Badge variant="neutral" size="sm">
-            Phase 3 Ready
-          </Badge>
-        </div>
+        )}
+
+        {/* Statically Detected API Surface */}
+        {intelligence?.apiSurface && (
+          <ApiSurfaceTable apiSurface={intelligence.apiSurface} />
+        )}
+
+        {/* Database & ORM Schemas */}
+        {intelligence?.database && (
+          <DatabaseSchemaViewer database={intelligence.database} />
+        )}
+
+        {/* What RepoInterview Discovered (Finding Inspector) */}
+        {intelligence && (
+          <FindingInspector intelligence={intelligence} />
+        )}
       </div>
     </div>
   );

@@ -65,19 +65,32 @@ const ProjectMock = () => {
   const [submitted, setSubmitted] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
+  const isAnalyzed = Boolean(project?.intelligence) || project?.status === 'ANALYZED' || project?.status === 'READY';
+
   if (!project || !project.questions || project.questions.length === 0) {
     return (
       <div className="flex flex-col min-h-full">
         {project && <ProjectNav projectId={project.id} />}
         <div className="p-12 max-w-2xl mx-auto flex flex-col items-center justify-center flex-1">
-          <EmptyState
-            icon={<PlaySquare size={24} className="text-accent" />}
-            title="An analyzed repository is required for project mock interviews."
-            description="Connect and analyze your repository to generate tailored questions before starting an adaptive interview simulation."
-            actionLabel="Connect Repository"
-            onAction={() => navigate('/projects/new')}
-            className="py-16 max-w-xl"
-          />
+          {isAnalyzed ? (
+            <EmptyState
+              icon={<PlaySquare size={24} className="text-accent" />}
+              title="Mock interview simulation unlocks in Phase 5."
+              description="Your repository is analyzed. Mock interview simulations will become active after question generation in Phase 4."
+              actionLabel="View Project Overview"
+              onAction={() => navigate(`/projects/${project.id}`)}
+              className="py-16 max-w-xl"
+            />
+          ) : (
+            <EmptyState
+              icon={<PlaySquare size={24} className="text-accent" />}
+              title="Repository analysis is required for mock interviews."
+              description="Connect and analyze your repository to prepare for simulated interview rounds."
+              actionLabel="Connect Repository"
+              onAction={() => navigate('/projects/new')}
+              className="py-16 max-w-xl"
+            />
+          )}
         </div>
       </div>
     );

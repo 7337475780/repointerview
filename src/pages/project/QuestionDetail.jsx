@@ -24,7 +24,7 @@ const QuestionDetail = () => {
   const [evidenceExpanded, setEvidenceExpanded] = useState(true);
   const [candidateNotes, setCandidateNotes] = useState('');
 
-  const project = projects.find(p => p.id === projectId);
+  const project = (projectId ? projects.find(p => p.id === projectId) : null) || projects[0] || null;
   const questions = project?.questions || [];
   const q = questions.find(item => item.id === questionId);
 

@@ -10,7 +10,7 @@ const Dashboard = () => {
   const { projects, activeProject } = useProject();
 
   const hasProjects = projects.length > 0;
-  const isReady = activeProject && activeProject.status === 'READY';
+  const isAnalyzed = Boolean(activeProject?.intelligence) || activeProject?.status === 'ANALYZED' || activeProject?.status === 'READY';
 
   return (
     <div className="p-8 max-w-7xl mx-auto flex flex-col gap-8">
@@ -122,8 +122,8 @@ const Dashboard = () => {
                   </h2>
                 </div>
                 <p className="text-xs text-text-secondary mt-1">
-                  {activeProject.status === 'READY'
-                    ? 'Repository analyzed. Interview intelligence ready.'
+                  {isAnalyzed
+                    ? 'Repository analyzed. Deterministic intelligence profile ready.'
                     : 'Repository connected. Analysis queued.'}
                 </p>
               </div>
@@ -144,8 +144,8 @@ const Dashboard = () => {
                 Interview Readiness
               </p>
               <p className="text-xs text-text-secondary leading-relaxed">
-                {isReady
-                  ? `${activeProject.analysisScore}% readiness calculated.`
+                {isAnalyzed
+                  ? 'Repository analyzed. Readiness scoring activates in Phase 4/5.'
                   : 'Your interview readiness will be calculated after we understand your project.'}
               </p>
             </div>
@@ -155,18 +155,20 @@ const Dashboard = () => {
                 Questions Bank
               </p>
               <p className="text-xs text-text-secondary leading-relaxed">
-                {isReady
-                  ? `${activeProject.questionsCount} predicted questions available.`
+                {isAnalyzed
+                  ? 'Phase 3 analysis complete. Question generation scheduled for Phase 4.'
                   : 'No project-specific questions yet.'}
               </p>
             </div>
 
             <div className="bg-bg-surface border border-border rounded-2xl p-6 flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary">
-                Mock Interviews
+                Architecture & Evidence
               </p>
               <p className="text-xs text-text-secondary leading-relaxed">
-                Interactive simulation ready to test technical defense.
+                {isAnalyzed
+                  ? 'Deterministic topology nodes and code evidence trails ready to inspect.'
+                  : 'Interactive simulation ready to test technical defense.'}
               </p>
             </div>
           </div>

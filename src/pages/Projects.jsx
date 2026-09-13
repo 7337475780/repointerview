@@ -57,11 +57,28 @@ const Projects = () => {
                     <h3 className="font-mono text-sm font-semibold text-text-primary truncate max-w-[180px]">
                       {project.repository.fullName}
                     </h3>
-                    <p className="text-2xs text-text-tertiary">Analyzed {project.lastAnalyzedAt}</p>
+                    <p className="text-2xs text-text-tertiary">
+                      {project.lastAnalyzedAt
+                        ? `Analyzed ${new Date(project.lastAnalyzedAt).toLocaleDateString()}`
+                        : 'Recently analyzed'}
+                    </p>
                   </div>
                 </div>
-                <Badge variant={project.status === 'ready' ? 'success' : 'neutral'} size="xs">
-                  {project.status === 'ready' ? 'Ready' : 'Pending'}
+                <Badge
+                  variant={
+                    project.status === 'ANALYSIS_WITH_WARNINGS'
+                      ? 'warning'
+                      : project.status === 'ANALYZED' || project.status === 'READY' || project.intelligence
+                      ? 'success'
+                      : 'neutral'
+                  }
+                  size="xs"
+                >
+                  {project.status === 'ANALYSIS_WITH_WARNINGS'
+                    ? 'With warnings'
+                    : project.status === 'ANALYZED' || project.status === 'READY' || project.intelligence
+                    ? 'Analyzed'
+                    : 'Pending'}
                 </Badge>
               </div>
 

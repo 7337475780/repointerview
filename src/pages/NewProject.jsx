@@ -40,7 +40,19 @@ const NewProject = () => {
         setProgressEvent(event);
       });
 
+      // Explicit transition to Phase 3 Deterministic Intelligence Analysis
+      setProgressEvent({
+        step: 'ANALYZING',
+        message: 'Running deterministic analyzers across ingested codebase...',
+      });
+
       const newProject = addProjectFromIngestion(result);
+
+      setProgressEvent({
+        step: 'ANALYZED',
+        message: 'Repository analysis complete.',
+      });
+
       setIngestionResult({ result, project: newProject });
     } catch (err) {
       setApiError(err?.message || 'Failed to connect to the GitHub repository.');

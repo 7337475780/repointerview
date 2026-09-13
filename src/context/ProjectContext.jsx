@@ -4,6 +4,9 @@ import { cacheService } from '../services/cacheService';
 
 const ProjectContext = createContext(null);
 
+// In-memory ingestion cache per project ID (contains full source files during session)
+const inMemoryIngestions = new Map();
+
 export const ProjectProvider = ({ children }) => {
   const [projects, setProjects] = useState(() => {
     try {
@@ -22,31 +25,41 @@ export const ProjectProvider = ({ children }) => {
     }
   });
 
-  // Save lightweight project metadata ONLY to localStorage (NO raw source code storage in localStorage)
+  // Save lightweight project metadata AND deterministic intelligence to localStorage
+  // (NO raw source code storage in localStorage to respect browser quotas)
   useEffect(() => {
     try {
       const metadataOnly = projects.map(p => ({
         id: p.id,
         repository: p.repository,
         createdAt: p.createdAt,
+        lastAnalyzedAt: p.lastAnalyzedAt || p.createdAt,
         status: p.status,
         analysisScore: p.analysisScore,
         techStack: p.techStack,
         stats: p.stats,
-        questionsCount: p.questionsCount,
+        architecture: p.architecture || p.intelligence?.architectureMap,
+        intelligence: p.intelligence,
+        questions: p.questions || [],
+        questionsCount: p.questionsCount || 0,
       }));
       localStorage.setItem('repointerview_projects_meta', JSON.stringify(metadataOnly));
       if (activeProjectId) {
         localStorage.setItem('repointerview_active_id', activeProjectId);
       }
-    } catch {}
+    } catch (err) {
+      console.warn('Failed to save project metadata to localStorage:', err);
+    }
   }, [projects, activeProjectId]);
 
   const activeProject = projects.find(p => p.id === activeProjectId) || projects[0] || null;
 
-  // Add project with full ingestion payload
+  // Add project with full ingestion payload & deterministic intelligence
   const addProjectFromIngestion = (ingestionResult) => {
     const newProject = repositoryService.createProjectFromIngestion(ingestionResult);
+
+    // Retain full source files in memory for this session
+    inMemoryIngestions.set(newProject.id, ingestionResult);
 
     setProjects(prev => {
       const filtered = prev.filter(p => p.id !== newProject.id);
@@ -57,20 +70,35 @@ export const ProjectProvider = ({ children }) => {
   };
 
   const removeProject = (id) => {
+    inMemoryIngestions.delete(id);
     setProjects(prev => prev.filter(p => p.id !== id));
     if (activeProjectId === id) {
       setActiveProjectId(null);
     }
   };
 
-  // Get active project's in-memory ingestion result if available
-  const getActiveIngestion = () => {
-    if (!activeProject || !activeProject.repository) return null;
-    const { owner, name, commitSha } = activeProject.repository;
-    if (commitSha) {
-      return cacheService.get(owner, name, commitSha) || activeProject.ingestion || null;
+  // Get in-memory ingestion result if available for a given project ID or active project
+  const getActiveIngestion = (projectId) => {
+    const targetProject = projectId ? projects.find(p => p.id === projectId) : activeProject;
+    if (!targetProject || !targetProject.repository) return null;
+
+    if (inMemoryIngestions.has(targetProject.id)) {
+      return inMemoryIngestions.get(targetProject.id);
     }
-    return activeProject.ingestion || null;
+
+    if (targetProject.ingestion) {
+      return targetProject.ingestion;
+    }
+
+    const { owner, name, commitSha } = targetProject.repository;
+    if (commitSha) {
+      return cacheService.get(owner, name, commitSha) || null;
+    }
+    return null;
+  };
+
+  const getProject = (id) => {
+    return projects.find(p => p.id === id) || null;
   };
 
   return (
@@ -83,6 +111,7 @@ export const ProjectProvider = ({ children }) => {
         addProjectFromIngestion,
         removeProject,
         getActiveIngestion,
+        getProject,
       }}
     >
       {children}

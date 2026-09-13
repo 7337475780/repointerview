@@ -7,6 +7,8 @@ const STAGES = [
   { id: 'FETCHING_TREE', label: 'Mapping recursive Git tree structure' },
   { id: 'SELECTING_FILES', label: 'Scoring code & architecture relevance' },
   { id: 'FETCHING_FILES', label: 'Retrieving key source file contents' },
+  { id: 'ANALYZING', label: 'Running Phase 3 deterministic intelligence engine' },
+  { id: 'ANALYZED', label: 'Repository analyzed & intelligence synthesized' },
 ];
 
 const IngestionProgress = ({ progressEvent }) => {
