@@ -9,6 +9,7 @@
     "test:backend": "node scripts/test-backend-analysis.js",
     "test:understanding": "node scripts/test-understanding-engine.js",
     "test:questions": "node scripts/test-question-generation.js",
+    "test:rag": "node scripts/test-rag-pipeline.js",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
@@ -20,6 +21,7 @@
     "express": "^5.2.1",
     "framer-motion": "^13.1.0",
     "lucide-react": "^1.33.0",
+    "mongodb": "^7.6.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

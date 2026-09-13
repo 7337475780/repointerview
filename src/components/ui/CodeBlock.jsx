@@ -21,7 +21,8 @@ const CodeBlock = ({
     } catch {}
   };
 
-  const lines = code.split('\n');
+  const safeCode = typeof code === 'string' ? code : (code ? String(code) : '');
+  const lines = safeCode.split('\n');
 
   return (
     <div className="bg-code-bg border border-code-border rounded-xl overflow-hidden font-mono text-xs my-3 shadow-sm">

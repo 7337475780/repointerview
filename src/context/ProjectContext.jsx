@@ -97,6 +97,21 @@ export const ProjectProvider = ({ children }) => {
     return null;
   };
 
+  const updateProjectQuestions = (projectId, questions) => {
+    setProjects(prev =>
+      prev.map(p => {
+        if (p.id === projectId) {
+          return {
+            ...p,
+            questions,
+            questionsCount: questions.length,
+          };
+        }
+        return p;
+      })
+    );
+  };
+
   const getProject = (id) => {
     return projects.find(p => p.id === id) || null;
   };
@@ -109,6 +124,7 @@ export const ProjectProvider = ({ children }) => {
         activeProjectId,
         setActiveProjectId,
         addProjectFromIngestion,
+        updateProjectQuestions,
         removeProject,
         getActiveIngestion,
         getProject,

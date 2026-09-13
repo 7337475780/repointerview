@@ -54,16 +54,21 @@ export const aiService = {
     return this.normalizeQuestions(questions);
   },
 
-  /**
-   * Call Google Gemini API
-   */
   async callGeminiApi(analysisData, options = {}) {
     const apiKey = config.ai.geminiApiKey;
     const model = config.ai.geminiModel || 'gemini-1.5-flash';
     const systemPrompt = promptTemplates.getSystemPrompt();
     const userPrompt = promptTemplates.getUserPrompt(analysisData, options);
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const isStudioKey = apiKey.startsWith('AIzaSy');
+    const endpoint = isStudioKey
+      ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+      : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (!isStudioKey) {
+      headers.Authorization = `Bearer ${apiKey}`;
+    }
 
     const requestBody = {
       contents: [
@@ -82,7 +87,7 @@ export const aiService = {
 
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(requestBody),
     });
 

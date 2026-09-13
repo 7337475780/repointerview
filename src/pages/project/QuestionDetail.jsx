@@ -143,8 +143,8 @@ const QuestionDetail = () => {
               />
             </section>
 
-            {/* Strong Answer (Collapsible) */}
-            {q.strongAnswer && (
+            {/* Model / Expected Answer (Collapsible) */}
+            {(q.expectedAnswer || q.strongAnswer) && (
               <section className="flex flex-col border border-border-subtle rounded-2xl overflow-hidden bg-bg-surface/50 shadow-sm">
                 <button
                   type="button"
@@ -169,7 +169,7 @@ const QuestionDetail = () => {
                     >
                       <div className="p-6 pt-0 border-t border-border-subtle bg-bg-elevated/30">
                         <p className="text-sm text-text-secondary leading-relaxed pl-4 border-l-2 border-accent my-3">
-                          {q.strongAnswer}
+                          {q.expectedAnswer || q.strongAnswer}
                         </p>
                       </div>
                     </motion.div>
@@ -222,13 +222,13 @@ const QuestionDetail = () => {
           {/* Sidebar */}
           <aside className="lg:col-span-4 flex flex-col gap-6">
             {/* Follow-up Questions */}
-            {q.followUp && q.followUp.length > 0 && (
+            {((q.followUpQuestions && q.followUpQuestions.length > 0) || (q.followUp && q.followUp.length > 0)) && (
               <div className="bg-bg-surface border border-border rounded-2xl p-5 flex flex-col gap-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-widest text-text-tertiary border-b border-border-subtle pb-3">
                   Expected Follow-ups
                 </p>
                 <ul className="flex flex-col gap-3">
-                  {q.followUp.map((fq, i) => (
+                  {(q.followUpQuestions || q.followUp || []).map((fq, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs text-text-secondary leading-relaxed">
                       <span className="text-accent font-bold" aria-hidden="true">
                         ›

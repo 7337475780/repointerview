@@ -7,6 +7,8 @@ import cors from 'cors';
 import { config } from './config/config.js';
 import repositoryRoutes from './routes/repositoryRoutes.js';
 import questionRoutes from './routes/questionRoutes.js';
+import ragRoutes from './routes/ragRoutes.js';
+import interviewRoutes from './routes/interviewRoutes.js';
 import { errorHandler, NotFoundError } from './middleware/errorHandler.js';
 
 const app = express();
@@ -31,6 +33,8 @@ if (config.nodeEnv !== 'test') {
 // API Routes
 app.use('/api/repository', repositoryRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/rag', ragRoutes);
+app.use('/api/interview', interviewRoutes);
 app.use('/api', repositoryRoutes); // Support alias /api/analyze, /api/validate
 
 // Root info route
